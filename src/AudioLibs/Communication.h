@@ -399,7 +399,7 @@ class ESPNowStreamNonBlocking: public ESPNowStream {
   public:
     uint8_t currentPeerCount = 0;
 
-    bool addPeer(const char *address) override {
+    bool addPeer(const char *address) {
       if (ESPNowStream::addPeer(address)) {
         currentPeerCount++;
         return true;
