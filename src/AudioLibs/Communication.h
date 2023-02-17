@@ -390,6 +390,35 @@ class ESPNowStream : public AudioStream {
 
 
 /**
+ * @brief ESPNow as Arduino Stream but non blocking
+ * @ingroup communications
+ * @author Jan Jaap
+ * @copyright GPLv3
+*/
+class ESPNowStreamNonBlocking: public ESPNowStream {
+  virtual size_t write(const uint8_t* data, size_t len) override {
+    if (ESPNOWCustomAudioStream::currentPeerCount == 0) {
+      return len;
+    }
+
+    int open = len;
+    size_t result = 0;
+    while (open > 0) {
+      size_t send_len = min(open, ESP_NOW_MAX_DATA_LEN);
+      esp_err_t send_status = esp_now_send(nullptr, data + result, send_len);
+      // check status
+      if (send_status != ESP_OK) {
+        LOGW("Write failed - skipped");
+      }
+
+      open -= send_len;
+      result += send_len;
+    }
+    return result;
+  }
+}
+
+/**
  * A Simple exension of the WiFiUDP class which makes sure that the basic Stream
  * functioinaltiy which is used as AudioSource and AudioSink
  * @ingroup communications
