@@ -408,7 +408,7 @@ class ESPNowStreamNonBlocking: public ESPNowStream {
     }
 
     virtual size_t write(const uint8_t* data, size_t len) override {
-      if (ESPNOWCustomAudioStream::currentPeerCount == 0) {
+      if (ESPNowStreamNonBlocking::currentPeerCount == 0) {
         return len;
       }
 
