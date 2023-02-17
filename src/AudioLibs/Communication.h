@@ -400,8 +400,11 @@ class ESPNowStreamNonBlocking: public ESPNowStream {
     uint8_t currentPeerCount = 0;
 
     bool addPeer(const char *address) override {
-      ESPNowStream::addPeer(address);
-      currentPeerCount++;
+      if (ESPNowStream::addPeer(address)) {
+        currentPeerCount++;
+        return true;
+      }
+      return false;
     }
 
     virtual size_t write(const uint8_t* data, size_t len) override {
