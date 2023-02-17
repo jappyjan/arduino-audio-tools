@@ -416,7 +416,7 @@ class ESPNowStreamNonBlocking: public ESPNowStream {
     }
     return result;
   }
-}
+};
 
 /**
  * A Simple exension of the WiFiUDP class which makes sure that the basic Stream
