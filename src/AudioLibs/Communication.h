@@ -396,26 +396,34 @@ class ESPNowStream : public AudioStream {
  * @copyright GPLv3
 */
 class ESPNowStreamNonBlocking: public ESPNowStream {
-  virtual size_t write(const uint8_t* data, size_t len) override {
-    if (ESPNOWCustomAudioStream::currentPeerCount == 0) {
-      return len;
+  public:
+    uint8_t currentPeerCount = 0;
+
+    bool addPeer(const char *address) override {
+      ESPNowStream::addPeer(address);
+      currentPeerCount++;
     }
 
-    int open = len;
-    size_t result = 0;
-    while (open > 0) {
-      size_t send_len = min(open, ESP_NOW_MAX_DATA_LEN);
-      esp_err_t send_status = esp_now_send(nullptr, data + result, send_len);
-      // check status
-      if (send_status != ESP_OK) {
-        LOGW("Write failed - skipped");
+    virtual size_t write(const uint8_t* data, size_t len) override {
+      if (ESPNOWCustomAudioStream::currentPeerCount == 0) {
+        return len;
       }
 
-      open -= send_len;
-      result += send_len;
+      int open = len;
+      size_t result = 0;
+      while (open > 0) {
+        size_t send_len = min(open, ESP_NOW_MAX_DATA_LEN);
+        esp_err_t send_status = esp_now_send(nullptr, data + result, send_len);
+        // check status
+        if (send_status != ESP_OK) {
+          LOGW("Write failed - skipped");
+        }
+
+        open -= send_len;
+        result += send_len;
+      }
+      return result;
     }
-    return result;
-  }
 };
 
 /**
