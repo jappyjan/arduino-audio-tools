@@ -416,24 +416,6 @@ class ESPNowStream : public AudioStream {
 */
 class ESPNowStreamNonBlocking: public ESPNowStream {
   public:
-    bool addPeer(const uint8_t *mac_addr) {
-      const char *address = mac2str(mac_addr);
-
-      String addressWithSuffix = String(address) + ";";
-      if (peers.indexOf(addressWithSuffix) != -1) {
-        LOGD("Peer already added: %s", address);
-        return true;
-      }
-
-      bool result = ESPNowStream::addPeer(address);
-
-      if (result) {
-        peers.concat(addressWithSuffix);
-      }
-
-      return result;
-    }
-
     void writeToOnePeer(const char *addr, const uint8_t *data, size_t len) {
       if (len > ESP_NOW_MAX_DATA_LEN) {
         LOGE("Write failed - skipped - data too long");
