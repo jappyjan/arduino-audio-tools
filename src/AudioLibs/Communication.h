@@ -425,7 +425,6 @@ class ESPNowStreamNonBlocking: public ESPNowStream {
       peerInfo.channel = cfg.channel;
       peerInfo.encrypt = isEncrypted();
       peerInfo.ifidx = getInterface();
-      peerInfo.lmk = (uint8_t *)cfg.local_master_key;
       strcpy((char *)peerInfo.peer_addr, (char *)broadcast_mac);
       esp_err_t add_status = esp_now_add_peer(&peerInfo);
 
