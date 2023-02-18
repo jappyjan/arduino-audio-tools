@@ -417,7 +417,7 @@ class ESPNowStream : public AudioStream {
 class ESPNowStreamNonBlocking: public ESPNowStream {
   public:
     bool begin(ESPNowStreamConfig cfg) {
-
+      LOGD("begin");
       ESPNowStream::begin(cfg);
       // add broadcast as peer
 
