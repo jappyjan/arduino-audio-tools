@@ -440,7 +440,7 @@ class ESPNowStreamNonBlocking: public ESPNowStream {
 
     /// Adds a peer to which we can send info or from which we can receive info
     bool addPeer(const char *address) override {
-      uint8_t mac_addr;
+      uint8_t *mac_addr;
       if (!str2mac(address, mac_addr)) {
         LOGE("addPeer - Invalid address: %s", address);
         return false;
