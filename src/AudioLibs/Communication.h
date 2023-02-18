@@ -417,7 +417,7 @@ class ESPNowStream : public AudioStream {
 class ESPNowStreamNonBlocking: public ESPNowStream {
   public:
     size_t write(const uint8_t *data, size_t len) override {
-      Serial.printf("write: %d", len);
+      Serial.printf("write: %d \n", len);
 
       char broadcast_mac[] = "ff:ff:ff:ff:ff:ff";
       uint8_t broadcast_mac_addr[];
@@ -453,15 +453,15 @@ class ESPNowStreamNonBlocking: public ESPNowStream {
             LOGE("ESP_ERR_ESPNOW_EXIST");
             break;
           default:
-            LOGE("esp_now_send: %d", rc);
+            Serial.printf("esp_now_send: %d \n", rc);
             break;
         }
         continue;
       } else {
-        LOGD("esp_now_send success: %d", send_len);
+        Serial.printf("esp_now_send success: %d \n", send_len);
       }
-      Serial.printf("write: %d -> %d", len, result);
-      return result;
+      Serial.println("write done");
+      return true;
     }
 };
 
