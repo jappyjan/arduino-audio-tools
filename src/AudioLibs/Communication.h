@@ -251,12 +251,14 @@ class ESPNowStream : public AudioStream {
         }
         // if we do have no partner to write we stall and retry later
       } else {
-        delay(cfg.delay_after_write_ms);
+        return 0;
+        // delay(cfg.delay_after_write_ms);
       }
 
       // Wait some time before we retry
       if (!is_write_ok) {
-        delay(cfg.delay_after_failed_write_ms);
+        return 0;
+        // delay(cfg.delay_after_failed_write_ms);
       }
     }
     return result;
@@ -454,6 +456,7 @@ class ESPNowStreamNonBlocking: public ESPNowStream {
               break;
           }
 
+          LOGD("Write failed - skipping %d bytes", send_len);
           return 0;
           /*
           retry_count++;
@@ -466,6 +469,7 @@ class ESPNowStreamNonBlocking: public ESPNowStream {
         }
         // if we do have no partner to write we stall and retry later
       } else {
+        LOGD("Write stalled - waiting for partner to read");
         delay(cfg.delay_after_write_ms);
       }
 
