@@ -416,6 +416,13 @@ class ESPNowStream : public AudioStream {
 */
 class ESPNowStreamNonBlocking: public ESPNowStream {
   public:
+    bool begin(ESPNowStreamConfig cfg) {
+      ESPNowStream::begin(cfg);
+      // add broadcast as peer
+
+      addPeer("ff:ff:ff:ff:ff:ff");
+    }
+
     void writeToOnePeer(const char *addr, const uint8_t *data, size_t len) {
       if (len > ESP_NOW_MAX_DATA_LEN) {
         LOGE("Write failed - skipped - data too long");
