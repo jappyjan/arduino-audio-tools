@@ -422,6 +422,33 @@ class ESPNowStreamNonBlocking: public ESPNowStream {
       return currentPeerCount;
     }
 
+    bool addPeer(const uint8_t *mac_addr) {
+      esp_now_peer_info_t peer;
+      peer.channel = cfg.channel;
+      peer.ifidx = getInterface();
+      peer.encrypt = false;
+
+      strcpy(peer.peer_addr, mac_addr);
+
+      if (isEncrypted()) {
+        peer.encrypt = true;
+        strncpy((char *)peer.lmk, cfg.local_master_key, 16);
+      }
+
+      return addPeer(peer);
+    }
+
+    /// Adds a peer to which we can send info or from which we can receive info
+    bool addPeer(const char *address) override {
+      uint8_t mac_addr;
+      if (!str2mac(address, mac_addr)) {
+        LOGE("addPeer - Invalid address: %s", address);
+        return false;
+      }
+
+      return addPeer(mac_addr);
+    }
+
     bool addPeer(const char *address) {
       if (ESPNowStream::addPeer(address)) {
         currentPeerCount++;
