@@ -443,7 +443,26 @@ class ESPNowStreamNonBlocking: public ESPNowStream {
         esp_err_t send_status = esp_now_send(nullptr, data + result, send_len);
         // check status
         if (send_status != ESP_OK) {
-          LOGW("Write failed - skipped");
+          switch (send_status) {
+            case ESP_ERR_ESPNOW_NOT_INIT:
+              LOGE("Write failed - skipped - ESPNOW Not Init");
+              break;
+            case ESP_ERR_ESPNOW_ARG:
+              LOGE("Write failed - skipped - Invalid Argument");
+              break;
+            case ESP_ERR_ESPNOW_INTERNAL:
+              LOGE("Write failed - skipped - Internal Error");
+              break;
+            case ESP_ERR_ESPNOW_NO_MEM:
+              LOGE("Write failed - skipped - ESP_ERR_ESPNOW_NO_MEM");
+              break;
+            case ESP_ERR_ESPNOW_NOT_FOUND:
+              LOGE("Write failed - skipped - Peer not found.");
+              break;
+            default:
+              LOGE("Write failed - skipped - Unknown Error");
+              break;
+          }
         }
 
         open -= send_len;
