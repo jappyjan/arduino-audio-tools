@@ -435,7 +435,7 @@ class ESPNowStreamNonBlocking: public ESPNowStream {
         strncpy((char *)peer.lmk, cfg.local_master_key, 16);
       }
 
-      return addPeer(peer);
+      return addPeer(&peer);
     }
 
     /// Adds a peer to which we can send info or from which we can receive info
