@@ -458,7 +458,7 @@ class ESPNowStreamNonBlocking: public ESPNowStream {
         }
         continue;
       } else {
-        Serial.printf("esp_now_send success: %d \n", send_len);
+        Serial.println("esp_now_send success");
       }
       Serial.println("write done");
       return true;
