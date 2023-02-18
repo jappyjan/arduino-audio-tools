@@ -426,7 +426,7 @@ class ESPNowStreamNonBlocking: public ESPNowStream {
         size_t send_len = min(open, ESP_NOW_MAX_DATA_LEN);
         esp_err_t rc = esp_now_send(nullptr, data + result, send_len);
         // check status
-        if (rc == ESP_OK && is_write_ok) {
+        if ((rc == ESP_OK || rc == ESP_ERR_ESPNOW_NOT_FOUND) && is_write_ok) {
           open -= send_len;
           result += send_len;
         } else {
@@ -442,9 +442,6 @@ class ESPNowStreamNonBlocking: public ESPNowStream {
               break;
             case ESP_ERR_ESPNOW_NO_MEM:
               LOGE("Write failed - skipped - Out of Memory");
-              break;
-            case ESP_ERR_ESPNOW_NOT_FOUND:
-              LOGE("Write failed - skipped - Peer not found");
               break;
             case ESP_ERR_ESPNOW_IF:
               LOGE("Write failed - skipped - WiFi interface error");
