@@ -427,7 +427,7 @@ class ESPNowStreamNonBlocking: public ESPNowStream {
       peerInfo.encrypt = isEncrypted();
       peerInfo.ifidx = getInterface();
 
-      byte broadcast_mac_addr[6] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
+      char broadcast_mac_addr[6] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
       strcpy((char *)peerInfo.peer_addr, broadcast_mac_addr);
       esp_err_t add_status = esp_now_add_peer(&peerInfo);
 
