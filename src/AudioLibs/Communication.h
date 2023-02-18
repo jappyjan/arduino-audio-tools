@@ -419,10 +419,7 @@ class ESPNowStreamNonBlocking: public ESPNowStream {
     size_t write(const uint8_t *data, size_t len) override {
       Serial.printf("write: %d \n", len);
 
-      char broadcast_mac[] = "ff:ff:ff:ff:ff:ff";
-      uint8_t broadcast_mac_addr[];
-      str2mac(broadcast_mac, broadcast_mac_addr);
-
+      uint8_t broadcast_mac_addr[6] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
       esp_err_t rc = esp_now_send(broadcast_mac_addr, data, len);
 
       // check status
