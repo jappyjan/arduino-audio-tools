@@ -422,13 +422,54 @@ class ESPNowStreamNonBlocking: public ESPNowStream {
       int retry_count = 0;
       while (open > 0) {
         size_t send_len = min(open, ESP_NOW_MAX_DATA_LEN);
-        esp_err_t rc = esp_now_send(nullptr, data + result, send_len);
+        char broadcast_mac[] = "ff:ff:ff:ff:ff:ff";
+        uint8_t broadcast_mac_addr[8];
+        str2mac(broadcast_mac, broadcast_mac_addr);
+        esp_err_t rc = esp_now_send(broadcast_mac_addr, data + result, send_len);
         
         open -= send_len;
         result += send_len;
 
         // check status
         if (rc != ESP_OK) {
+          switch (rc) {
+            case ESP_ERR_ESPNOW_NOT_INIT:
+              LOGE("ESP_ERR_ESPNOW_NOT_INIT");
+              break;
+            case ESP_ERR_ESPNOW_ARG:
+              LOGE("ESP_ERR_ESPNOW_ARG");
+              break;
+            case ESP_ERR_ESPNOW_INTERNAL:
+              LOGE("ESP_ERR_ESPNOW_INTERNAL");
+              break;
+            case ESP_ERR_ESPNOW_NO_MEM:
+              LOGE("ESP_ERR_ESPNOW_NO_MEM");
+              break;
+            case ESP_ERR_ESPNOW_NOT_FOUND:
+              LOGE("ESP_ERR_ESPNOW_NOT_FOUND");
+              break;
+            case ESP_ERR_ESPNOW_IF:
+              LOGE("ESP_ERR_ESPNOW_IF");
+              break;
+            case ESP_ERR_ESPNOW_FULL:
+              LOGE("ESP_ERR_ESPNOW_FULL");
+              break;
+            case ESP_ERR_ESPNOW_EXIST:
+              LOGE("ESP_ERR_ESPNOW_EXIST");
+              break;
+            case ESP_ERR_ESPNOW_NOT_SUPPORT:
+              LOGE("ESP_ERR_ESPNOW_NOT_SUPPORT");
+              break;
+            case ESP_ERR_ESPNOW_PMK:
+              LOGE("ESP_ERR_ESPNOW_PMK");
+              break;
+            case ESP_ERR_ESPNOW_SEC:
+              LOGE("ESP_ERR_ESPNOW_SEC");
+              break;
+            default:
+              LOGE("esp_now_send: %d", rc);
+              break;
+          }
           continue;
         } else {
           LOGD("esp_now_send success: %d", send_len);
