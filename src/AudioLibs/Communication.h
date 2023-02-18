@@ -500,17 +500,59 @@ class ESPNowStreamNonBlocking: public ESPNowStream {
 
     virtual size_t write(const uint8_t* data, size_t len) override {
       int open = len;
-      size_t result = 0;
-      while (open > 0) {
+    size_t result = 0;
+    int retry_count = 0;
+    while (open > 0) {
+      if (available_to_write > 0) {
+        resetAvailableToWrite();
         size_t send_len = min(open, ESP_NOW_MAX_DATA_LEN);
-
-        // send to broadcast
-        writeToOnePeer("ff:ff:ff:ff:ff:ff", data, send_len);
-
-        open -= send_len;
-        result += send_len;
+        esp_err_t rc = esp_now_send(nullptr, data + result, send_len);
+        // check status
+        if (rc == ESP_OK && is_write_ok) {
+          open -= send_len;
+          result += send_len;
+        } else {
+          switch (rc) {
+            case ESP_ERR_ESPNOW_NOT_INIT:
+              LOGE("Write failed - skipped - ESPNOW Not Init");
+              break;
+            case ESP_ERR_ESPNOW_ARG:
+              LOGE("Write failed - skipped - Invalid Argument");
+              break;
+            case ESP_ERR_ESPNOW_INTERNAL:
+              LOGE("Write failed - skipped - Internal Error");
+              break;
+            case ESP_ERR_ESPNOW_NO_MEM:
+              LOGE("Write failed - skipped - Out of Memory");
+              break;
+            case ESP_ERR_ESPNOW_NOT_FOUND:
+              LOGE("Write failed - skipped - Peer not found");
+              break;
+            case ESP_ERR_ESPNOW_IF:
+              LOGE("Write failed - skipped - WiFi interface error");
+              break;
+            default:
+              LOGE("Write failed - skipped - Unknown Error");
+              break;
+          }
+          retry_count++;
+          if (cfg.write_retry_count>0 && retry_count>=cfg.write_retry_count){
+            LOGE("Write error after %d retries", cfg.write_retry_count);
+            // break loop
+            return 0;
+          }
+        }
+        // if we do have no partner to write we stall and retry later
+      } else {
+        delay(cfg.delay_after_write_ms);
       }
-      return result;
+
+      // Wait some time before we retry
+      if (!is_write_ok) {
+        delay(cfg.delay_after_failed_write_ms);
+      }
+    }
+    return result;
     }
 };
 
