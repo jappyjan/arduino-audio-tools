@@ -457,15 +457,6 @@ class ESPNowStreamNonBlocking: public ESPNowStream {
             case ESP_ERR_ESPNOW_EXIST:
               LOGE("ESP_ERR_ESPNOW_EXIST");
               break;
-            case ESP_ERR_ESPNOW_NOT_SUPPORT:
-              LOGE("ESP_ERR_ESPNOW_NOT_SUPPORT");
-              break;
-            case ESP_ERR_ESPNOW_PMK:
-              LOGE("ESP_ERR_ESPNOW_PMK");
-              break;
-            case ESP_ERR_ESPNOW_SEC:
-              LOGE("ESP_ERR_ESPNOW_SEC");
-              break;
             default:
               LOGE("esp_now_send: %d", rc);
               break;
