@@ -420,7 +420,37 @@ class ESPNowStreamNonBlocking: public ESPNowStream {
       ESPNowStream::begin(cfg);
       // add broadcast as peer
 
-      addPeer("ff:ff:ff:ff:ff:ff");
+      esp_now_peer_info_t peerInfo;
+      memset(&peerInfo, 0, sizeof(peerInfo));
+      peerInfo.channel = cfg.channel;
+      peerInfo.encrypt = isEncrypted();
+      peerInfo.ifidx = getInterface();
+      peerInfo.lmk = (uint8_t *)cfg.local_master_key;
+      strcpy((char *)peerInfo.peer_addr, (char *)broadcast_mac);
+      esp_err_t add_status = esp_now_add_peer(&peerInfo);
+
+      if (add_status != ESP_OK) {
+        switch (add_status) {
+          case ESP_ERR_ESPNOW_NOT_INIT:
+            LOGE("Add broadcast peer failed - skipped - ESPNOW Not Init");
+            break;
+          case ESP_ERR_ESPNOW_ARG:
+            LOGE("Add broadcast peer failed - skipped - Invalid Argument");
+            break;
+          case ESP_ERR_ESPNOW_FULL:
+            LOGE("Add broadcast peer failed - skipped - Peer list full");
+            break;
+          case ESP_ERR_ESPNOW_NO_MEM:
+            LOGE("Add broadcast peer failed - skipped - Out of memory");
+            break;
+          case ESP_ERR_ESPNOW_EXIST:
+            LOGE("Add broadcast peer failed - skipped - Peer Exists");
+            break;
+          default:
+            LOGE("Add broadcast peer failed - skipped - Unknown Error");
+            break;
+        }
+      }
     }
 
     void writeToOnePeer(const char *addr, const uint8_t *data, size_t len) {
