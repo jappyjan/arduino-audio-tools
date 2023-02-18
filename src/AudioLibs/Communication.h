@@ -417,57 +417,50 @@ class ESPNowStream : public AudioStream {
 class ESPNowStreamNonBlocking: public ESPNowStream {
   public:
     size_t write(const uint8_t *data, size_t len) override {
-      LOGD("write: %d", len);
-      int open = len;
-      size_t result = 0;
-      int retry_count = 0;
-      while (open > 0) {
-        size_t send_len = min(open, ESP_NOW_MAX_DATA_LEN);
-        char broadcast_mac[] = "ff:ff:ff:ff:ff:ff";
-        uint8_t broadcast_mac_addr[8];
-        str2mac(broadcast_mac, broadcast_mac_addr);
-        esp_err_t rc = esp_now_send(broadcast_mac_addr, data + result, send_len);
-        
-        open -= send_len;
-        result += send_len;
+      Serial.printf("write: %d", len);
 
-        // check status
-        if (rc != ESP_OK) {
-          switch (rc) {
-            case ESP_ERR_ESPNOW_NOT_INIT:
-              LOGE("ESP_ERR_ESPNOW_NOT_INIT");
-              break;
-            case ESP_ERR_ESPNOW_ARG:
-              LOGE("ESP_ERR_ESPNOW_ARG");
-              break;
-            case ESP_ERR_ESPNOW_INTERNAL:
-              LOGE("ESP_ERR_ESPNOW_INTERNAL");
-              break;
-            case ESP_ERR_ESPNOW_NO_MEM:
-              LOGE("ESP_ERR_ESPNOW_NO_MEM");
-              break;
-            case ESP_ERR_ESPNOW_NOT_FOUND:
-              LOGE("ESP_ERR_ESPNOW_NOT_FOUND");
-              break;
-            case ESP_ERR_ESPNOW_IF:
-              LOGE("ESP_ERR_ESPNOW_IF");
-              break;
-            case ESP_ERR_ESPNOW_FULL:
-              LOGE("ESP_ERR_ESPNOW_FULL");
-              break;
-            case ESP_ERR_ESPNOW_EXIST:
-              LOGE("ESP_ERR_ESPNOW_EXIST");
-              break;
-            default:
-              LOGE("esp_now_send: %d", rc);
-              break;
-          }
-          continue;
-        } else {
-          LOGD("esp_now_send success: %d", send_len);
+      char broadcast_mac[] = "ff:ff:ff:ff:ff:ff";
+      uint8_t broadcast_mac_addr[];
+      str2mac(broadcast_mac, broadcast_mac_addr);
+
+      esp_err_t rc = esp_now_send(broadcast_mac_addr, data, len);
+
+      // check status
+      if (rc != ESP_OK) {
+        switch (rc) {
+          case ESP_ERR_ESPNOW_NOT_INIT:
+            LOGE("ESP_ERR_ESPNOW_NOT_INIT");
+            break;
+          case ESP_ERR_ESPNOW_ARG:
+            LOGE("ESP_ERR_ESPNOW_ARG");
+            break;
+          case ESP_ERR_ESPNOW_INTERNAL:
+            LOGE("ESP_ERR_ESPNOW_INTERNAL");
+            break;
+          case ESP_ERR_ESPNOW_NO_MEM:
+            LOGE("ESP_ERR_ESPNOW_NO_MEM");
+            break;
+          case ESP_ERR_ESPNOW_NOT_FOUND:
+            LOGE("ESP_ERR_ESPNOW_NOT_FOUND");
+            break;
+          case ESP_ERR_ESPNOW_IF:
+            LOGE("ESP_ERR_ESPNOW_IF");
+            break;
+          case ESP_ERR_ESPNOW_FULL:
+            LOGE("ESP_ERR_ESPNOW_FULL");
+            break;
+          case ESP_ERR_ESPNOW_EXIST:
+            LOGE("ESP_ERR_ESPNOW_EXIST");
+            break;
+          default:
+            LOGE("esp_now_send: %d", rc);
+            break;
         }
+        continue;
+      } else {
+        LOGD("esp_now_send success: %d", send_len);
       }
-      LOGD("write: %d -> %d", len, result);
+      Serial.printf("write: %d -> %d", len, result);
       return result;
     }
 };
