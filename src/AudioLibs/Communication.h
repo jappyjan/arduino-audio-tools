@@ -416,50 +416,6 @@ class ESPNowStream : public AudioStream {
 */
 class ESPNowStreamNonBlocking: public ESPNowStream {
   public:
-    String peers = new String("");
-
-    char[] getPairedPeers() {
-      String peersCopy = String(peers.c_str());
-
-      char[] peersArray = new char[peersCopy.length() + 1];
-
-      int index = 0;
-      uint8_t peersCount = 0;
-      while (true) {
-          int nextIndex = peersCopy.indexOf(';', index);
-          if (nextIndex == -1) {
-              break;
-          }
-
-          strcpy(peersArray[index], peersCopy.substring(index, nextIndex).c_str());
-          peersCount++;
-
-          index = nextIndex + 1;
-      }
-      
-      // shrink peerArray to match the actual size
-      char[] peersArrayShrinked = new char[peersCount];
-
-      for (uint8_t i = 0; i < peersCount; i++) {
-        peersArrayShrinked[i] = peersArray[i];
-      }
-
-      // free the old array
-      delete[] peersArray;
-
-      return peersArrayShrinked;
-    }
-
-    uint8_t getCurrentPeerCount() {
-      char[] peersArray = getPairedPeers();
-      uint8_t peersCount = sizeof(peersArray) / sizeof(peersArray[0]);
-      
-      // free the old array
-      delete[] peersArray;
-
-      return peersCount;
-    }
-
     bool addPeer(const uint8_t *mac_addr) {
       const char *address = mac2str(mac_addr);
 
@@ -518,20 +474,13 @@ class ESPNowStreamNonBlocking: public ESPNowStream {
     }
 
     virtual size_t write(const uint8_t* data, size_t len) override {
-      char[] peersArray = getPairedPeers();
-      uint8_t peersCount = sizeof(peersArray) / sizeof(peersArray[0]);
-      if (peersCount == 0) {
-        return len;
-      }
-
       int open = len;
       size_t result = 0;
       while (open > 0) {
         size_t send_len = min(open, ESP_NOW_MAX_DATA_LEN);
 
-        for (uint8_t i = 0; i < peersCount; i++) {
-          writeToOnePeer(peersArray[i], data + result, send_len);
-        }
+        // send to broadcast
+        writeToOnePeer("ff:ff:ff:ff:ff:ff", data, send_len);
 
         open -= send_len;
         result += send_len;
