@@ -158,9 +158,29 @@ class ESPNowStream : public AudioStream {
     }
     esp_err_t result = esp_now_add_peer(&peer);
     if (result == ESP_OK) {
-      LOGI("addPeer: %s", mac2str(peer.peer_addr));
+      LOGI("peer added with mac: %s", mac2str(peer.peer_addr));
     } else {
-      LOGE("addPeer: %d", result);
+      LOGE("adding peer failed with result: %d", result);
+      switch (result) {
+        case ESP_ERR_ESPNOW_NOT_INIT:
+          LOGE("ESPNOW Not Init");
+          break;
+        case ESP_ERR_ESPNOW_ARG:
+          LOGE("Invalid Argument");
+          break;
+        case ESP_ERR_ESPNOW_FULL:
+          LOGE("Peer list full");
+          break;
+        case ESP_ERR_ESPNOW_NO_MEM:
+          LOGE("Out of memory");
+          break;
+        case ESP_ERR_ESPNOW_EXIST:
+          LOGE("Peer Exists");
+          break;
+        default:
+          LOGE("Not sure what happened");
+          break;
+      }
     }
     return result == ESP_OK;
   }
