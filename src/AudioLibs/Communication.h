@@ -421,14 +421,18 @@ class ESPNowStreamNonBlocking: public ESPNowStream {
       ESPNowStream::begin(cfg);
       // add broadcast as peer
 
+      LOGD("prepare broadcast peer");
       esp_now_peer_info_t peerInfo;
       memset(&peerInfo, 0, sizeof(peerInfo));
       peerInfo.channel = cfg.channel;
       peerInfo.encrypt = isEncrypted();
       peerInfo.ifidx = getInterface();
 
+      LOGD("prepare broadcast mac_addr");
       char broadcast_mac_addr[6] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
       strcpy((char *)peerInfo.peer_addr, broadcast_mac_addr);
+
+      LOGD("add broadcast peer");
       esp_err_t add_status = esp_now_add_peer(&peerInfo);
 
       if (add_status != ESP_OK) {
