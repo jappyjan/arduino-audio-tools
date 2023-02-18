@@ -416,23 +416,111 @@ class ESPNowStream : public AudioStream {
 */
 class ESPNowStreamNonBlocking: public ESPNowStream {
   public:
-    uint8_t currentPeerCount = 0;
+    String peers = new String("");
+
+    char[] getPairedPeers() {
+      String peersCopy = String(peers.c_str());
+
+      char[] peersArray = new char[peersCopy.length() + 1];
+
+      int index = 0;
+      uint8_t peersCount = 0;
+      while (true) {
+          int nextIndex = peersCopy.indexOf(';', index);
+          if (nextIndex == -1) {
+              break;
+          }
+
+          strcpy(peersArray[index], peersCopy.substring(index, nextIndex).c_str());
+          peersCount++;
+
+          index = nextIndex + 1;
+      }
+      
+      // shrink peerArray to match the actual size
+      char[] peersArrayShrinked = new char[peersCount];
+
+      for (uint8_t i = 0; i < peersCount; i++) {
+        peersArrayShrinked[i] = peersArray[i];
+      }
+
+      // free the old array
+      delete[] peersArray;
+
+      return peersArrayShrinked;
+    }
 
     uint8_t getCurrentPeerCount() {
-      return currentPeerCount;
+      char[] peersArray = getPairedPeers();
+      uint8_t peersCount = sizeof(peersArray) / sizeof(peersArray[0]);
+      
+      // free the old array
+      delete[] peersArray;
+
+      return peersCount;
     }
 
     bool addPeer(const uint8_t *mac_addr) {
       const char *address = mac2str(mac_addr);
-      if (ESPNowStream::addPeer(address)) {
-        currentPeerCount++;
+
+      String addressWithSuffix = String(address) + ";";
+      if (peers.indexOf(addressWithSuffix) != -1) {
+        LOGD("Peer already added: %s", address);
         return true;
       }
-      return false;
+
+      bool result = ESPNowStream::addPeer(address);
+
+      if (result) {
+        peers.concat(addressWithSuffix);
+      }
+
+      return result;
+    }
+
+    void writeToOnePeer(const char *addr, const uint8_t *data, size_t len) {
+      if (len > ESP_NOW_MAX_DATA_LEN) {
+        LOGE("Write failed - skipped - data too long");
+        return;
+      }
+
+      byte mac_addr[ESP_NOW_KEY_LEN];
+      str2mac(addr, mac_addr);
+
+      esp_err_t send_status = esp_now_send(mac_addr, data, len);
+      // check status
+      if (send_status != ESP_OK) {
+        switch (send_status) {
+          case ESP_ERR_ESPNOW_NOT_INIT:
+            LOGE("Write failed - skipped - ESPNOW Not Init");
+            break;
+          case ESP_ERR_ESPNOW_ARG:
+            LOGE("Write failed - skipped - Invalid Argument");
+            break;
+          case ESP_ERR_ESPNOW_INTERNAL:
+            LOGE("Write failed - skipped - Internal Error");
+            break;
+          case ESP_ERR_ESPNOW_NO_MEM:
+            LOGE("Write failed - skipped - Out of Memory");
+            break;
+          case ESP_ERR_ESPNOW_NOT_FOUND:
+            LOGE("Write failed - skipped - Peer not found");
+            break;
+          case ESP_ERR_ESPNOW_IF:
+            LOGE("Write failed - skipped - WiFi interface error");
+            break;
+          default:
+            LOGE("Write failed - skipped - Unknown Error");
+            break;
+        }
+        return;
+      }
     }
 
     virtual size_t write(const uint8_t* data, size_t len) override {
-      if (ESPNowStreamNonBlocking::currentPeerCount == 0) {
+      char[] peersArray = getPairedPeers();
+      uint8_t peersCount = sizeof(peersArray) / sizeof(peersArray[0]);
+      if (peersCount == 0) {
         return len;
       }
 
@@ -440,29 +528,9 @@ class ESPNowStreamNonBlocking: public ESPNowStream {
       size_t result = 0;
       while (open > 0) {
         size_t send_len = min(open, ESP_NOW_MAX_DATA_LEN);
-        esp_err_t send_status = esp_now_send(nullptr, data + result, send_len);
-        // check status
-        if (send_status != ESP_OK) {
-          switch (send_status) {
-            case ESP_ERR_ESPNOW_NOT_INIT:
-              LOGE("Write failed - skipped - ESPNOW Not Init");
-              break;
-            case ESP_ERR_ESPNOW_ARG:
-              LOGE("Write failed - skipped - Invalid Argument");
-              break;
-            case ESP_ERR_ESPNOW_INTERNAL:
-              LOGE("Write failed - skipped - Internal Error");
-              break;
-            case ESP_ERR_ESPNOW_NO_MEM:
-              LOGE("Write failed - skipped - ESP_ERR_ESPNOW_NO_MEM");
-              break;
-            case ESP_ERR_ESPNOW_NOT_FOUND:
-              LOGE("Write failed - skipped - Peer not found.");
-              break;
-            default:
-              LOGE("Write failed - skipped - Unknown Error");
-              break;
-          }
+
+        for (uint8_t i = 0; i < peersCount; i++) {
+          writeToOnePeer(peersArray[i], data + result, send_len);
         }
 
         open -= send_len;
