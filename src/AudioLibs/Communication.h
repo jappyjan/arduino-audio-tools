@@ -430,6 +430,8 @@ class ESPNowStreamNonBlocking: public ESPNowStream {
         // check status
         if (rc != ESP_OK) {
           continue;
+        } else {
+          LOGD("esp_now_send success: %d", send_len);
         }
       }
       return result;
