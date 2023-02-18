@@ -175,7 +175,7 @@ class ESPNowStream : public AudioStream {
           LOGE("Out of memory");
           break;
         case ESP_ERR_ESPNOW_EXIST:
-          LOGE("Peer Exists");
+          // LOGE("Peer Exists");
           break;
         default:
           LOGE("Not sure what happened");
