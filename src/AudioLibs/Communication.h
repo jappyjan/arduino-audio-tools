@@ -417,6 +417,7 @@ class ESPNowStream : public AudioStream {
 class ESPNowStreamNonBlocking: public ESPNowStream {
   public:
     size_t write(const uint8_t *data, size_t len) override {
+      LOGD("write: %d", len);
       int open = len;
       size_t result = 0;
       int retry_count = 0;
@@ -466,6 +467,7 @@ class ESPNowStreamNonBlocking: public ESPNowStream {
           LOGD("esp_now_send success: %d", send_len);
         }
       }
+      LOGD("write: %d -> %d", len, result);
       return result;
     }
 };
