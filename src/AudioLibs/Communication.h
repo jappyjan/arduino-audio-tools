@@ -417,6 +417,7 @@ class ESPNowStream : public AudioStream {
 class ESPNowStreamNonBlocking: public ESPNowStream {
   public:
     bool begin(ESPNowStreamConfig cfg) {
+
       ESPNowStream::begin(cfg);
       // add broadcast as peer
 
@@ -425,7 +426,9 @@ class ESPNowStreamNonBlocking: public ESPNowStream {
       peerInfo.channel = cfg.channel;
       peerInfo.encrypt = isEncrypted();
       peerInfo.ifidx = getInterface();
-      strcpy((char *)peerInfo.peer_addr, str2mac("ff:ff:ff:ff:ff:ff"));
+
+      byte broadcast_mac_addr[6] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
+      strcpy((char *)peerInfo.peer_addr, broadcast_mac_addr);
       esp_err_t add_status = esp_now_add_peer(&peerInfo);
 
       if (add_status != ESP_OK) {
