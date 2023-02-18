@@ -224,41 +224,16 @@ class ESPNowStream : public AudioStream {
     size_t result = 0;
     int retry_count = 0;
     while (open > 0) {
-      if (available_to_write > 0) {
-        resetAvailableToWrite();
-        size_t send_len = min(open, ESP_NOW_MAX_DATA_LEN);
-        esp_err_t rc = esp_now_send(nullptr, data + result, send_len);
-        // wait for confirmation
-        if (cfg.use_send_ack) {
-          while (available_to_write == 0) {
-            delay(1);
-          }
-        } else {
-          is_write_ok = true;
-        }
-        // check status
-        if (rc == ESP_OK && is_write_ok) {
-          open -= send_len;
-          result += send_len;
-        } else {
-          LOGW("Write failed - retrying again");
-          retry_count++;
-          if (cfg.write_retry_count>0 && retry_count>=cfg.write_retry_count){
-            LOGE("Write error after %d retries", cfg.write_retry_count);
-            // break loop
-            return 0;
-          }
-        }
-        // if we do have no partner to write we stall and retry later
-      } else {
-        return 0;
-        // delay(cfg.delay_after_write_ms);
-      }
+      size_t send_len = min(open, ESP_NOW_MAX_DATA_LEN);
+      esp_err_t rc = esp_now_send(nullptr, data + result, send_len);
+      
+      open -= send_len;
+      result += send_len;
 
-      // Wait some time before we retry
-      if (!is_write_ok) {
-        return 0;
-        // delay(cfg.delay_after_failed_write_ms);
+      // check status
+      if (rc != ESP_OK) {
+        LOGW("Write failed - skipping");
+        continue;
       }
     }
     return result;
