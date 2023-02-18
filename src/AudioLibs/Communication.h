@@ -453,7 +453,6 @@ class ESPNowStreamNonBlocking: public ESPNowStream {
             Serial.printf("esp_now_send: %d \n", rc);
             break;
         }
-        continue;
       } else {
         Serial.println("esp_now_send success");
       }
