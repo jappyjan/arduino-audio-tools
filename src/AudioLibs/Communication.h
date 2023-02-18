@@ -452,14 +452,17 @@ class ESPNowStreamNonBlocking: public ESPNowStream {
             default:
               LOGE("Write failed - skipped - Unknown Error");
               break;
-            return 0;
           }
+
+          return 0;
+          /*
           retry_count++;
           if (cfg.write_retry_count>0 && retry_count>=cfg.write_retry_count){
             LOGE("Write error after %d retries", cfg.write_retry_count);
             // break loop
             return 0;
           }
+          */
         }
         // if we do have no partner to write we stall and retry later
       } else {
