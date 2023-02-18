@@ -429,7 +429,6 @@ class ESPNowStreamNonBlocking: public ESPNowStream {
 
         // check status
         if (rc != ESP_OK) {
-          LOGW("Write failed - skipping (remaining %d)", open);
           continue;
         }
       }
